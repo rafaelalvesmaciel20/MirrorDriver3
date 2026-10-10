@@ -23,13 +23,24 @@ jobs:
         run: |
           unzip -o MirrorDrive-GitHub-Build-3.zip -d projeto
 
-      - name: Corrigir erro de compilação no Discovery.kt
+      - name: Corrigir compatibilidade Java 17 no app/build.gradle.kts
         run: |
-          DISCOVERY_FILE=$(find projeto -name "Discovery.kt" -print -quit)
-          if [ -n "$DISCOVERY_FILE" ]; then
-            echo "Corrigindo referência em $DISCOVERY_FILE"
-            # Substitui temporariamente a linha com timeToLive caso cause erro de compilação
-            sed -i 's/timeToLive/setTimeToLive(1)/g' "$DISCOVERY_FILE" || true
+          APP_BUILD_FILE=$(find projeto -path "*/app/build.gradle.kts" -print -quit)
+          if [ -n "$APP_BUILD_FILE" ]; then
+            echo "Ajustando compileOptions e kotlinOptions para Java 17 em $APP_BUILD_FILE"
+            # Adiciona o bloco compileOptions e kotlinOptions para forçar Java 17
+            echo "" >> "$APP_BUILD_FILE"
+            echo "android {" >> "$APP_BUILD_FILE"
+            echo "    compileOptions {" >> "$APP_BUILD_FILE"
+            echo "        sourceCompatibility = JavaVersion.VERSION_17" >> "$APP_BUILD_FILE"
+            echo "        targetCompatibility = JavaVersion.VERSION_17" >> "$APP_BUILD_FILE"
+            echo "    }" >> "$APP_BUILD_FILE"
+            echo "}" >> "$APP_BUILD_FILE"
+            echo "kotlin {" >> "$APP_BUILD_FILE"
+            echo "    compilerOptions {" >> "$APP_BUILD_FILE"
+            echo "        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)" >> "$APP_BUILD_FILE"
+            echo "    }" >> "$APP_BUILD_FILE"
+            echo "}" >> "$APP_BUILD_FILE"
           fi
 
       - name: Compilar APK
