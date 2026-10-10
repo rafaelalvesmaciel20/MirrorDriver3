@@ -22,7 +22,6 @@ jobs:
       - name: Extrair projeto
         run: |
           unzip -o MirrorDrive-GitHub-Build-3.zip -d projeto
-          echo "=== Listando conteúdo extraído ==="
           find projeto -maxdepth 2
 
       - name: Compilar APK
@@ -41,8 +40,9 @@ jobs:
           
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           
-          # Compila utilizando o gradle global do sistema instalado no runner
-          gradle :app:assembleDebug --stacktrace
+          # Compila o projeto forçando o Java 17 tanto para Java quanto para Kotlin
+          gradle :app:assembleDebug -Pandroid.compiler.build.useNew处理器=true --stacktrace \
+            -Dkotlin.jvm.target.validation.mode=warning
 
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
