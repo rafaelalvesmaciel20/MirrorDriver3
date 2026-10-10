@@ -27,8 +27,6 @@ jobs:
         run: |
           APP_BUILD_FILE=$(find projeto -path "*/app/build.gradle.kts" -print -quit)
           if [ -n "$APP_BUILD_FILE" ]; then
-            echo "Ajustando compileOptions e kotlinOptions para Java 17 em $APP_BUILD_FILE"
-            # Adiciona o bloco compileOptions e kotlinOptions para forçar Java 17
             echo "" >> "$APP_BUILD_FILE"
             echo "android {" >> "$APP_BUILD_FILE"
             echo "    compileOptions {" >> "$APP_BUILD_FILE"
@@ -40,7 +38,17 @@ jobs:
             echo "    compilerOptions {" >> "$APP_BUILD_FILE"
             echo "        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)" >> "$APP_BUILD_FILE"
             echo "    }" >> "$APP_BUILD_FILE"
-            echo "}" >> "$APP_BUILD_FILE"
+            echo "kotlin {" >> "$APP_BUILD_FILE"
+          fi
+
+      - name: Corrigir erro no Discovery.kt
+        run: |
+          DISCOVERY_FILE=$(find projeto -name "Discovery.kt" -print -quit)
+          if [ -n "$DISCOVERY_FILE" ]; then
+            echo "Corrigindo timeToLive em $DISCOVERY_FILE"
+            # Substitui a chamada incorreta para evitar o erro de referência não resolvida
+            sed -i 's/timeToLive/setTimeToLive(1)/g' "$DISCOVERY_FILE" || true
+            sed -i 's/\.timeToLive\b/.setTimeToLive(1)/g' "$DISCOVERY_FILE" || true
           fi
 
       - name: Compilar APK
