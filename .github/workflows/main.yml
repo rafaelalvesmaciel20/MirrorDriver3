@@ -23,6 +23,19 @@ jobs:
         run: |
           unzip -o MirrorDrive-GitHub-Build-3.zip -d projeto
 
+      - name: Corrigir compatibilidade JVM no app/build.gradle.kts
+        run: |
+          APP_BUILD_FILE=$(find projeto -path "*/app/build.gradle.kts" -print -quit)
+          if [ -n "$APP_BUILD_FILE" ]; then
+            echo "Adicionando jvmToolchain(17) em $APP_BUILD_FILE"
+            echo "" >> "$APP_BUILD_FILE"
+            echo "kotlin {" >> "$APP_BUILD_FILE"
+            echo "    jvmToolchain(17)" >> "$APP_BUILD_FILE"
+            echo "}" >> "$APP_BUILD_FILE"
+          else
+            echo "Aviso: app/build.gradle.kts não encontrado."
+          fi
+
       - name: Compilar APK
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
@@ -33,12 +46,7 @@ jobs:
           
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           
-          # Compila o projeto alinhando as propriedades de compatibilidade do Java/Kotlin via linha de comando
-          gradle :app:assembleDebug \
-            -Pandroid.compileSdk=35 \
-            -Pandroid.targetSdk=35 \
-            -Pandroid.minSdk=24 \
-            --stacktrace
+          gradle :app:assembleDebug --stacktrace
 
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
