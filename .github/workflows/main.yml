@@ -23,13 +23,27 @@ jobs:
         run: |
           unzip -o MirrorDrive-GitHub-Build-3.zip -d projeto
 
-      - name: Corrigir propriedade timeToLive no Discovery.kt
+      - name: Forçar compatibilidade Java 17 no app/build.gradle.kts
         run: |
-          DISCOVERY_FILE=$(find projeto -name "Discovery.kt" -print -quit)
-          if [ -n "$DISCOVERY_FILE" ]; then
-            echo "Corrigindo Discovery.kt..."
-            # Altera de timeToLive para ttl ou ajusta a propriedade para compilar corretamente
-            sed -i 's/timeToLive/ttl/g' "$DISCOVERY_FILE" || true
+          APP_BUILD_FILE=$(find projeto -path "*/app/build.gradle.kts" -print -quit)
+          if [ -n "$APP_BUILD_FILE" ]; then
+            echo "Atualizando compatibilidade Java/Kotlin para 17 em $APP_BUILD_FILE"
+            
+            # Remove linhas antigas de compileOptions se existirem para evitar duplicidade incorreta
+            sed -i '/sourceCompatibility/d' "$APP_BUILD_FILE" || true
+            sed -i '/targetCompatibility/d' "$APP_BUILD_FILE" || true
+            
+            # Adiciona as configurações corretas dentro do bloco android e kotlin
+            echo "" >> "$APP_BUILD_FILE"
+            echo "android {" >> "$APP_BUILD_FILE"
+            echo "    compileOptions {" >> "$APP_BUILD_FILE"
+            echo "        sourceCompatibility = JavaVersion.VERSION_17" >> "$APP_BUILD_FILE"
+            echo "        targetCompatibility = JavaVersion.VERSION_17" >> "$APP_BUILD_FILE"
+            echo "    }" >> "$APP_BUILD_FILE"
+            echo "}" >> "$APP_BUILD_FILE"
+            echo "kotlin {" >> "$APP_BUILD_FILE"
+            echo "    jvmToolchain(17)" >> "$APP_BUILD_FILE"
+            echo "}" >> "$APP_BUILD_FILE"
           fi
 
       - name: Compilar APK
@@ -42,12 +56,7 @@ jobs:
           
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           
-          # Compila o app ajustando a compatibilidade JVM globalmente e ignorando validações estritas
-          gradle :app:assembleDebug \
-            -Pandroid.compileSdk=35 \
-            -Dkotlin.jvm.target.validation.mode=ignore \
-            -Pkotlin.compiler.jvmTarget=17 \
-            --stacktrace
+          gradle :app:assembleDebug --stacktrace
 
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
