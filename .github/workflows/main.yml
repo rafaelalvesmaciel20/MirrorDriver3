@@ -23,17 +23,13 @@ jobs:
         run: |
           unzip -o MirrorDrive-GitHub-Build-3.zip -d projeto
 
-      - name: Corrigir compatibilidade JVM no app/build.gradle.kts
+      - name: Corrigir erro de compilação no Discovery.kt
         run: |
-          APP_BUILD_FILE=$(find projeto -path "*/app/build.gradle.kts" -print -quit)
-          if [ -n "$APP_BUILD_FILE" ]; then
-            echo "Adicionando jvmToolchain(17) em $APP_BUILD_FILE"
-            echo "" >> "$APP_BUILD_FILE"
-            echo "kotlin {" >> "$APP_BUILD_FILE"
-            echo "    jvmToolchain(17)" >> "$APP_BUILD_FILE"
-            echo "}" >> "$APP_BUILD_FILE"
-          else
-            echo "Aviso: app/build.gradle.kts não encontrado."
+          DISCOVERY_FILE=$(find projeto -name "Discovery.kt" -print -quit)
+          if [ -n "$DISCOVERY_FILE" ]; then
+            echo "Corrigindo referência em $DISCOVERY_FILE"
+            # Substitui temporariamente a linha com timeToLive caso cause erro de compilação
+            sed -i 's/timeToLive/setTimeToLive(1)/g' "$DISCOVERY_FILE" || true
           fi
 
       - name: Compilar APK
