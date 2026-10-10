@@ -25,13 +25,14 @@ jobs:
 
       - name: Corrigir compatibilidade Java/Kotlin
         run: |
-          # Procura o build.gradle.kts do módulo app e injeta a compatibilidade Java 17
           APP_BUILD_FILE=$(find projeto -path "*/app/build.gradle.kts" -print -quit)
           if [ -n "$APP_BUILD_FILE" ]; then
-            echo "Aplicando correção de Java 17 em $APP_BUILD_FILE"
+            echo "Injetando configurações de compatibilidade Java 17..."
             echo "" >> "$APP_BUILD_FILE"
             echo "kotlin {" >> "$APP_BUILD_FILE"
-            echo "    jvmToolchain(17)" >> "$APP_BUILD_FILE"
+            echo "    compilerOptions {" >> "$APP_BUILD_FILE"
+            echo "        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)" >> "$APP_BUILD_FILE"
+            echo "    }" >> "$APP_BUILD_FILE"
             echo "}" >> "$APP_BUILD_FILE"
           fi
 
