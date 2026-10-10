@@ -42,8 +42,12 @@ jobs:
           
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           
-          # Compila o APK ignorando a validação estricta de JVM entre Java e Kotlin
-          gradle :app:assembleDebug -Dkotlin.jvm.target.validation.mode=ignore --stacktrace
+          # Força a compilação alinhando as propriedades do compilador para Java 17 e ignorando validações estritas
+          gradle :app:assembleDebug \
+            -Pandroid.compileSdk=35 \
+            -Dkotlin.jvm.target.validation.mode=ignore \
+            -Dkotlin.compiler.jvm.target=17 \
+            --stacktrace
 
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
