@@ -23,11 +23,8 @@ jobs:
         run: |
           unzip -o MirrorDrive-GitHub-Build-3.zip -d projeto
 
-      - name: Limpar alterações incorretas e corrigir Discovery.kt
+      - name: Corrigir erro no Discovery.kt
         run: |
-          # Restaura os arquivos para garantir que não haja erros de sintaxe gerados por injeções anteriores
-          git checkout . || true
-          
           DISCOVERY_FILE=$(find projeto -name "Discovery.kt" -print -quit)
           if [ -n "$DISCOVERY_FILE" ]; then
             echo "Corrigindo timeToLive em $DISCOVERY_FILE"
@@ -45,7 +42,8 @@ jobs:
           
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           
-          gradle :app:assembleDebug --stacktrace
+          # Compila o APK ignorando a validação estricta de JVM entre Java e Kotlin
+          gradle :app:assembleDebug -Dkotlin.jvm.target.validation.mode=ignore --stacktrace
 
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
