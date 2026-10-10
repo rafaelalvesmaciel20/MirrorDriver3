@@ -1,3 +1,4 @@
+
 name: Build MirrorDrive APK
 
 on:
@@ -22,29 +23,29 @@ jobs:
       - name: Extrair projeto
         run: |
           unzip -o MirrorDrive-GitHub-Build-3.zip -d projeto
-          echo "=== Listando arquivos extraídos ==="
-          find projeto -maxdepth 3
+          echo "=== Listando conteúdo extraído ==="
+          ls -la projeto
 
       - name: Compilar APK
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
         run: |
-          # Procura a pasta que contém o arquivo build.gradle.kts ou settings.gradle.kts
-          BUILD_FILE=$(find projeto -name "settings.gradle.kts" -o -name "build.gradle.kts" -print -quit)
-          if [ -z "$BUILD_FILE" ]; then
-            echo "Erro: Arquivo de projeto Gradle não encontrado!"
+          # Encontra a pasta raiz do projeto contendo o settings.gradle.kts
+          SETTINGS_FILE=$(find projeto -name "settings.gradle.kts" -print -quit)
+          if [ -z "$SETTINGS_FILE" ]; then
+            echo "Erro: settings.gradle.kts não encontrado!"
             exit 1
           fi
           
-          PROJECT_DIR=$(dirname "$BUILD_FILE")
-          echo "Diretório do projeto: $PROJECT_DIR"
-          cd "$PROJECT_DIR"
+          ROOT_DIR=$(dirname "$SETTINGS_FILE")
+          echo "Raiz do projeto: $ROOT_DIR"
+          cd "$ROOT_DIR"
           
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           
-          # Se não existir gradlew, cria ele automaticamente na versão 8.9
+          # Gera o gradle wrapper na raiz correta se não existir
           if [ ! -f "gradlew" ]; then
-            echo "Gerando gradlew automaticamente..."
+            echo "Gerando gradlew na raiz..."
             gradle wrapper --gradle-version 8.9
           fi
           
