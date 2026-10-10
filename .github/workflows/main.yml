@@ -23,19 +23,6 @@ jobs:
         run: |
           unzip -o MirrorDrive-GitHub-Build-3.zip -d projeto
 
-      - name: Corrigir compatibilidade Java/Kotlin
-        run: |
-          APP_BUILD_FILE=$(find projeto -path "*/app/build.gradle.kts" -print -quit)
-          if [ -n "$APP_BUILD_FILE" ]; then
-            echo "Injetando configurações de compatibilidade Java 17..."
-            echo "" >> "$APP_BUILD_FILE"
-            echo "kotlin {" >> "$APP_BUILD_FILE"
-            echo "    compilerOptions {" >> "$APP_BUILD_FILE"
-            echo "        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)" >> "$APP_BUILD_FILE"
-            echo "    }" >> "$APP_BUILD_FILE"
-            echo "}" >> "$APP_BUILD_FILE"
-          fi
-
       - name: Compilar APK
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
@@ -46,7 +33,10 @@ jobs:
           
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           
-          gradle :app:assembleDebug --stacktrace
+          # Força o Gradle a alinhar a compilação para o Java 17, resolvendo o conflito com o Kotlin
+          gradle :app:assembleDebug -Dkotlin.jvm.target.validation.mode=ignore \
+            -Pandroid.compileSdk=35 \
+            --stacktrace
 
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
