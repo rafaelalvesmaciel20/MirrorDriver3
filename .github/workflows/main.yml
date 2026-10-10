@@ -1,3 +1,4 @@
+
 name: Build MirrorDrive APK
 
 on:
@@ -32,6 +33,24 @@ jobs:
             sed -i 's/\.timeToLive\b/.setTimeToLive(1)/g' "$DISCOVERY_FILE" || true
           fi
 
+      - name: Forçar compatibilidade Java 17 no app/build.gradle.kts
+        run: |
+          APP_BUILD_FILE=$(find projeto -path "*/app/build.gradle.kts" -print -quit)
+          if [ -n "$APP_BUILD_FILE" ]; then
+            echo "Injetando configurações de compatibilidade Java 17..."
+            # Adiciona compileOptions e jvmToolchain no arquivo de build do app
+            echo "" >> "$APP_BUILD_FILE"
+            echo "android {" >> "$APP_BUILD_FILE"
+            echo "    compileOptions {" >> "$APP_BUILD_FILE"
+            echo "        sourceCompatibility = JavaVersion.VERSION_17" >> "$APP_BUILD_FILE"
+            echo "        targetCompatibility = JavaVersion.VERSION_17" >> "$APP_BUILD_FILE"
+            echo "    }" >> "$APP_BUILD_FILE"
+            echo "}" >> "$APP_BUILD_FILE"
+            echo "kotlin {" >> "$APP_BUILD_FILE"
+            echo "    jvmToolchain(17)" >> "$APP_BUILD_FILE"
+            echo "}" >> "$APP_BUILD_FILE"
+          fi
+
       - name: Compilar APK
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
@@ -42,12 +61,7 @@ jobs:
           
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           
-          # Força a compilação alinhando as propriedades do compilador para Java 17 e ignorando validações estritas
-          gradle :app:assembleDebug \
-            -Pandroid.compileSdk=35 \
-            -Dkotlin.jvm.target.validation.mode=ignore \
-            -Dkotlin.compiler.jvm.target=17 \
-            --stacktrace
+          gradle :app:assembleDebug --stacktrace
 
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
