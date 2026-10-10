@@ -25,11 +25,13 @@ jobs:
         with:
           gradle-version: "8.9"
 
-      - name: Configurar Android SDK
+            - name: Configurar Android SDK
         uses: android-actions/setup-android@v3
 
       - name: Instalar ferramentas Android
-        run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Extrair projeto
         run: |
