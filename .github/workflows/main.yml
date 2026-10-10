@@ -22,18 +22,27 @@ jobs:
       - name: Extrair projeto
         run: |
           unzip -o MirrorDrive-GitHub-Build-3.zip -d projeto
-          find projeto -name settings.gradle.kts -print
+          echo "=== Estrutura extraída ==="
+          find projeto -maxdepth 3
 
       - name: Compilar APK
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
         run: |
-          PROJECT_DIR=$(dirname "$(find projeto -name settings.gradle.kts -print -quit)")
+          # Encontra a pasta onde está o gradlew
+          GRADLEW_PATH=$(find projeto -name gradlew -print -quit)
+          if [ -z "$GRADLEW_PATH" ]; then
+            echo "Erro: gradlew não encontrado!"
+            exit 1
+          fi
+          
+          PROJECT_DIR=$(dirname "$GRADLEW_PATH")
+          echo "Diretório do projeto encontrado: $PROJECT_DIR"
           cd "$PROJECT_DIR"
           
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           
-          chmod +x gradlew || true
+          chmod +x gradlew
           ./gradlew :app:assembleDebug --stacktrace
 
       - name: Disponibilizar APK
